@@ -1,0 +1,47 @@
+SUMMARY="Browse and apply wallpapers from wallhaven.cc"
+DESCRIPTION="An unofficial wallpaper browser with previews and original downloads. \
+Browse saved images offline and set the desktop background on all workspaces."
+HOMEPAGE="https://github.com/lhfchym/wallhaven-haiku"
+COPYRIGHT="2026 lhfchym"
+LICENSE="MIT"
+REVISION="6"
+SOURCE_URI="$HOMEPAGE/archive/c93b11b5c6783e0b3fdb97fc797018f1bc9ac963.tar.gz"
+CHECKSUM_SHA256="040c50feccaadd2d83e13737dc1d8c87ad830a09c675e498c66ed5d3549337d0"
+SOURCE_DIR="wallhaven-haiku-c93b11b5c6783e0b3fdb97fc797018f1bc9ac963/Haiku"
+ARCHITECTURES="x86_64"
+USER_SETTINGS_FILES="settings/Wallhaven directory"
+PROVIDES="
+	wallhaven = $portVersion
+	app:Wallhaven = $portVersion
+	"
+REQUIRES="
+	haiku >= r1~beta6
+	lib:libcurl
+	lib:libstdc++
+	lib:libgcc_s
+	"
+BUILD_REQUIRES="
+	haiku_devel
+	devel:libcurl
+	"
+BUILD_PREREQUIRES="
+	cmd:g++
+	cmd:make
+	cmd:ld
+	"
+BUILD()
+{
+	make clean
+	make $jobArgs
+	make test
+}
+INSTALL()
+{
+	make install-staged PREFIX="$prefix"
+	addAppDeskbarSymlink "$appsDir/Wallhaven/Wallhaven"
+}
+
+TEST()
+{
+	make test
+}

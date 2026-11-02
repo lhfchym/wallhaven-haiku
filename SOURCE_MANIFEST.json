@@ -21,6 +21,7 @@
   "README.md": "75fdf00b169609122fe6039fbac14973a031b3476479684b9ffc079646b0e0e9",
   "RELEASE_NOTES.md": "6d14e34384fca70af90eef9503373357fa1697cbf0856c7f6061f4c23a4945d8",
   "SCREENSHOTS.md": "896ab59c255cff7deb746f6abd37bead292181ed9318478c5ce6c700cf8b9df5",
+  "VALIDATION.md": "e4b3ed8ba9bbf7f47860e24d05aa62e6b1d02cf93135b9e23f52a0259d5bb5ee",
   "assets/source/generate_app_icon.swift": "e2a275d3fdb3bcda057e59fe2e59e74542768ed96ad099295c034edb0ea9d5cc",
   "demo-art/LICENSE": "5ad594928101f13522a34fe89ff5396fbe9fcca4c6e23fdd3a3c2a38250768ac",
   "demo-art/README.md": "e4c90513e8c53c44dc7b3e0908b5ce00ad67ae170775fb3ec509c90973af6230",
@@ -31,6 +32,7 @@
   "demo-art/demo05.svg": "c62751382987a1e581da326d4c5526b16b0e35812e72d3c4c5ebc8a6a5846b4c",
   "demo-art/demo06.svg": "a3b02200a3537966c3f83103e6d80f1301b5c04b328019ccc1d92e7bcf1af5e9",
   "demo-art/generate.py": "9af224b34a90067cdf81c9faf4090c08680ac739efeab6ff31b27e002183f289",
+  "haikuporter/wallhaven-1.0.0.recipe": "674b300440d05fca98fb9fadd7d5230a2a896e5601add2cabc0da3808487a372",
   "screenshots/desktop.png": "20c125dc6fbd71308aa2cbc0d7100c41516b87c5dab5067db99d0ebe1530d50a",
   "screenshots/gallery.png": "15dc6c95d21166db3230a6068ddeccb8886fb179f9f373a5619e3243b54ef8fe",
   "screenshots/preview.png": "573a137880e3dc51acd0866662f909e3d2161de374d9d7242639acf00300e7df"
