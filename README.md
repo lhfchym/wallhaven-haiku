@@ -1,5 +1,7 @@
 # Wallhaven for Haiku
 
+**English** | [简体中文](README.zh-CN.md)
+
 An unofficial native wallpaper browser for wallhaven.cc, built for Haiku x86_64.
 Browse wallpapers, preview and download originals, explore saved images offline,
 and apply a background to all workspaces. English is the default; Chinese is

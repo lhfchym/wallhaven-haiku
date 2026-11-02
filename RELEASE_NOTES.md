@@ -1,5 +1,7 @@
 # Wallhaven for Haiku 1.0.0
 
+**English** | [简体中文](RELEASE_NOTES.zh-CN.md)
+
 First public release, package revision 6, for Haiku R1 beta6 x86_64.
 
 Browse wallhaven.cc with a native Haiku interface: search and filter images,
