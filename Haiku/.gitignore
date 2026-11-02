@@ -1,0 +1,10 @@
+*.o
+*.rsrc
+/Wallhaven
+/backend-tests
+/BackendTests
+/artifacts/
+/dist/
+*.zip
+
+RequestTests

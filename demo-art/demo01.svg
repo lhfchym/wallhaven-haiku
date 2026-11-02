@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<title>Amber horizon — original geometric demo artwork</title>
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f5deac"/><stop offset="1" stop-color="#d9855b"/></linearGradient></defs>
+<path fill="url(#sky)" d="M0 0H1600V1000H0Z"/>
+<circle cx="1120" cy="310" r="126" fill="#ddab70"/>
+<path d="M0 610L230 470 440 560 740 350 1010 600 1320 450 1600 570V1000H0Z" fill="#697d79"/>
+<path d="M0 750Q260 600 560 745T1120 735T1600 720V1000H0Z" fill="#294f57"/>
+<path d="M0 863Q350 770 780 870T1600 855" fill="none" stroke="#f5deac" stroke-width="3" opacity=".35"/>
+<path d="M0 908Q430 820 900 920T1600 900" fill="none" stroke="#f5deac" stroke-width="2" opacity=".22"/>
+</svg>
