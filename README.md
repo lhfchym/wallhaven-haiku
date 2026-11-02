@@ -11,12 +11,17 @@ Bug reports: https://github.com/lhfchym/wallhaven-haiku/issues
 
 ## Status and installation
 
-This source snapshot is being prepared for public distribution. It has not been
-accepted into HaikuPorts, and a public binary release is not yet available.
+Download the x86_64 HPKG and checksums from the [1.0.0 release](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0).
+The package revision is 6. This project has not been accepted into HaikuPorts.
 
 The existing implementation was tested on Haiku R1 beta6 hrev59866+79, x86_64.
-When a release package is available, install its local HPKG using `pkgman install`
-or Haiku's package installer, then launch Wallhaven from Deskbar → Applications.
+Install the downloaded package with:
+
+```sh
+pkgman install ./wallhaven-1.0.0-6-x86_64.hpkg
+```
+
+Then launch Wallhaven from Deskbar → Applications.
 Quit the app before upgrading. `pkgman uninstall wallhaven` removes the application
 but preserves preferences, history, cache and downloaded images.
 
@@ -37,8 +42,8 @@ outages. `make install` is a developer installation; avoid keeping it alongside
 an installed HPKG with the same application signature.
 
 To create a distribution package on Haiku, run `./package.sh`. Its metadata
-points to the project repository above. The HaikuPorter recipe is maintained separately until a public source
-archive and checksum are available.
+points to the project repository above. The [HaikuPorter recipe](haikuporter/wallhaven-1.0.0.recipe) pins an immutable public
+source commit and its archive checksum. It is also attached to the release.
 
 ## Use
 
@@ -73,7 +78,7 @@ maintenance across system updates.
 ## Contributing and licensing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for useful bug reports and development checks,
-and [RELEASE_NOTES.md](RELEASE_NOTES.md) for the draft release description.
+and [RELEASE_NOTES.md](RELEASE_NOTES.md) for release details.
 Project code and original icons are MIT licensed; see [LICENSE](LICENSE).
 [Third-party notices](Haiku/THIRD_PARTY_NOTICES.txt) cover the linked JSON code.
 Downloaded wallpapers are not covered by the project license. This application

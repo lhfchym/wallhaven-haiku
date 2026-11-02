@@ -1,6 +1,7 @@
-# Prepared changes
+# 1.0.0 — package revision 6
 
-English by default; saved language choices preserved.
+First public release. English by default; saved language choices preserved.
 API-only X-API-Key headers; chroot-compatible directory creation.
 Linked JSON component attribution included in package documentation.
-See https://github.com/lhfchym/wallhaven-haiku/blob/main/RELEASE_NOTES.md for release status and test scope.
+
+See https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0 for assets and validation.
