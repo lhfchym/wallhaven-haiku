@@ -1,3 +1,8 @@
+#include "Localization.h"
+
+#undef B_TRANSLATION_CONTEXT
+#define B_TRANSLATION_CONTEXT "Backend"
+
 #include "Backend.h"
 
 #include <Autolock.h>
@@ -98,7 +103,7 @@ bool WriteMessage(const std::string& path, BMessage& message, std::string& error
     std::vector<char> name(temporary.begin(), temporary.end());
     name.push_back(0);
     int fd = mkstemp(name.data());
-    if (fd < 0) { error = "Cannot create settings file."; return false; }
+    if (fd < 0) { error = B_TRANSLATE("Cannot create settings file."); return false; }
     fchmod(fd, 0600);
     close(fd);
     BFile file(name.data(), B_WRITE_ONLY);
@@ -108,7 +113,7 @@ bool WriteMessage(const std::string& path, BMessage& message, std::string& error
     file.Unset();
     if (status != B_OK || rename(name.data(), path.c_str()) != 0) {
         unlink(name.data());
-        error = "Cannot save settings. Check free space and directory permissions.";
+        error = B_TRANSLATE("Cannot save settings. Check free space and directory permissions.");
         return false;
     }
     return true;
@@ -146,7 +151,7 @@ bool Request(const std::string& url, Transfer& transfer, bool image,
     error.clear();
     std::call_once(sCurlOnce, [] { curl_global_init(CURL_GLOBAL_DEFAULT); });
     CURL* curl = curl_easy_init();
-    if (!curl) { error = "Cannot initialize network connection."; return false; }
+    if (!curl) { error = B_TRANSLATE("Cannot initialize network connection."); return false; }
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "WallhavenHaiku/1.0");
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 12L);
@@ -164,13 +169,13 @@ bool Request(const std::string& url, Transfer& transfer, bool image,
     if (!apiKey.empty()) {
         if (!ValidAPIKey(apiKey) || image
             || url.compare(0, 28, "https://wallhaven.cc/api/v1/") != 0) {
-            error = "Invalid API authentication request.";
+            error = B_TRANSLATE("Invalid API authentication request.");
             curl_easy_cleanup(curl);
             return false;
         }
         headers = curl_slist_append(NULL, ("X-API-Key: " + apiKey).c_str());
         if (!headers) {
-            error = "Cannot allocate API authentication header.";
+            error = B_TRANSLATE("Cannot allocate API authentication header.");
             curl_easy_cleanup(curl);
             return false;
         }
@@ -191,15 +196,17 @@ bool Request(const std::string& url, Transfer& transfer, bool image,
     bool imageType = type && strncmp(type, "image/", 6) == 0;
     if (result != CURLE_OK) {
         // curl_easy_strerror describes the failure without exposing the URL/API key.
-        error = std::string("Network error: ") + curl_easy_strerror(result);
+        BString message(B_TRANSLATE("Network error: %detail%"));
+        message.ReplaceAll("%detail%",curl_easy_strerror(result)); error=message.String();
     } else if (status == 401 || status == 403) {
-        error = "Access denied. Check the API key and requested purity filter.";
+        error = B_TRANSLATE("Access denied. Check the API key and requested purity filter.");
     } else if (status == 429) {
-        error = "Wallhaven rate limit reached. Please wait one minute and try again.";
+        error = B_TRANSLATE("Wallhaven rate limit reached. Please wait one minute and try again.");
     } else if (status < 200 || status >= 300) {
-        error = "Wallhaven returned HTTP " + std::to_string(status) + ".";
+        BString message(B_TRANSLATE("Wallhaven returned HTTP %status%."));
+        message.ReplaceAll("%status%",std::to_string(status).c_str()); error=message.String();
     } else if (transfer.size == 0 || (image && !imageType)) {
-        error = "The server did not return a valid image.";
+        error = B_TRANSLATE("The server did not return a valid image.");
     }
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
@@ -251,22 +258,22 @@ bool FetchFile(const std::string& url, const std::string& destination,
 {
     error.clear();
     if (ValidImageFile(destination)) return true;
-    if (!ImageURL(url)) { error = "Invalid wallpaper image URL."; return false; }
+    if (!ImageURL(url)) { error = B_TRANSLATE("Invalid wallpaper image URL."); return false; }
     std::string temporary = destination + ".XXXXXX";
     std::vector<char> name(temporary.begin(), temporary.end());
     name.push_back(0);
     int fd = mkstemp(name.data());
-    if (fd < 0) { error = "Cannot create image file. Check the download directory."; return false; }
+    if (fd < 0) { error = B_TRANSLATE("Cannot create image file. Check the download directory."); return false; }
     FILE* file = fdopen(fd, "wb");
-    if (!file) { close(fd); unlink(name.data()); error = "Cannot open image file."; return false; }
+    if (!file) { close(fd); unlink(name.data()); error = B_TRANSLATE("Cannot open image file."); return false; }
     Transfer transfer;
     transfer.file = file;
     transfer.limit = (thumbnail ? 8 : 150) * 1024 * 1024;
     bool ok = Request(url, transfer, true, thumbnail ? 30 : 120, error);
-    if (fclose(file) != 0 && ok) { ok = false; error = "Cannot finish writing image file."; }
-    if (ok && !ValidImageFile(name.data())) { ok = false; error = "Downloaded image is invalid or unsupported."; }
+    if (fclose(file) != 0 && ok) { ok = false; error = B_TRANSLATE("Cannot finish writing image file."); }
+    if (ok && !ValidImageFile(name.data())) { ok = false; error = B_TRANSLATE("Downloaded image is invalid or unsupported."); }
     if (ok && rename(name.data(), destination.c_str()) != 0) {
-        ok = false; error = "Cannot move the downloaded image to its destination.";
+        ok = false; error = B_TRANSLATE("Cannot move the downloaded image to its destination.");
     }
     if (!ok) unlink(name.data());
     else {
@@ -344,7 +351,7 @@ Preferences Backend::LoadPreferences()
     value = String(message, "sorting");
     if (ValidSorting(value)) prefs.sorting = value;
     value = String(message, "language");
-    if (value == "en" || value == "zh-Hans") prefs.language = value;
+    if (value == "en" || value == "zh-Hans" || value == "system") prefs.language = value;
     message.FindBool("strictAspectRatio", &prefs.strictAspectRatio);
     return prefs;
 }
@@ -354,7 +361,7 @@ bool Backend::SavePreferences(const Preferences& prefs, std::string& error)
     BAutolock lock(&sPersistenceLock);
     error.clear();
     if (!ValidMask(prefs.categories) || !ValidMask(prefs.purity) || !ValidSorting(prefs.sorting)) {
-        error = "Invalid search settings."; return false;
+        error = B_TRANSLATE("Invalid search settings."); return false;
     }
     BMessage message;
     message.AddString("query", prefs.query.c_str());
@@ -390,7 +397,7 @@ bool Backend::ParseSearchResponse(const std::string& json, int width, int height
     if (BJson::Parse(json.c_str(), json.size(), root) != B_OK
         || root.FindMessage("data", &data) != B_OK
         || root.FindMessage("meta", &meta) != B_OK || data.what != '_JTA') {
-        error = "Wallhaven returned an invalid search response."; return false;
+        error = B_TRANSLATE("Wallhaven returned an invalid search response."); return false;
     }
     SearchResult parsed;
     parsed.page = static_cast<int>(Number(meta, "current_page"));
@@ -398,7 +405,7 @@ bool Backend::ParseSearchResponse(const std::string& json, int width, int height
     parsed.total = static_cast<int>(std::min<int64_t>(Number(meta, "total"), INT32_MAX));
     parsed.seed = String(meta, "seed");
     if (parsed.page < 1 || parsed.lastPage < 1) {
-        error = "Wallhaven returned invalid pagination metadata."; return false;
+        error = B_TRANSLATE("Wallhaven returned invalid pagination metadata."); return false;
     }
     std::set<std::string> ids;
     for (int index = 0; index < 1000; ++index) {
@@ -437,10 +444,10 @@ bool Backend::Search(const Preferences& prefs, int width, int height, int page,
     error.clear();
     if (!ValidMask(prefs.categories) || !ValidMask(prefs.purity) || !ValidSorting(prefs.sorting)
         || page < 1 || width < 1 || height < 1) {
-        error = "Invalid search settings or display dimensions."; return false;
+        error = B_TRANSLATE("Invalid search settings or display dimensions."); return false;
     }
     if (prefs.purity[2] == '1' && prefs.apiKey.empty()) {
-        error = "An API key is required to include NSFW wallpapers."; return false;
+        error = B_TRANSLATE("An API key is required to include NSFW wallpapers."); return false;
     }
     std::string url = "https://wallhaven.cc/api/v1/search?q=" + Encode(prefs.query)
         + "&categories=" + prefs.categories + "&purity=" + prefs.purity
@@ -480,7 +487,7 @@ bool Backend::EnsureThumbnail(const Wallpaper& wallpaper, std::string& path, std
     if (!wallpaper.localPath.empty() && ValidImageFile(wallpaper.localPath)) {
         path = wallpaper.localPath; return true;
     }
-    if (!SafeID(wallpaper.id)) { error = "Invalid wallpaper identifier."; return false; }
+    if (!SafeID(wallpaper.id)) { error = B_TRANSLATE("Invalid wallpaper identifier."); return false; }
     path = fCacheDirectory + "/" + wallpaper.id + ".jpg";
     return FetchFile(wallpaper.thumbnailURL, path, true, error);
 }
@@ -498,11 +505,11 @@ bool Backend::Download(const Wallpaper& wallpaper, const Preferences& prefs,
         path = wallpaper.localPath; return true;
     }
     if (!SafeID(wallpaper.id) || wallpaper.width <= 0 || wallpaper.height <= 0) {
-        error = "Invalid wallpaper metadata."; return false;
+        error = B_TRANSLATE("Invalid wallpaper metadata."); return false;
     }
     std::string directory = DownloadDirectory(prefs);
     if (!EnsureDirectory(directory, 0755)) {
-        error = "Cannot create the wallpaper download directory."; return false;
+        error = B_TRANSLATE("Cannot create the wallpaper download directory."); return false;
     }
     std::string extension = wallpaper.fileType == "image/png" ? "png"
         : wallpaper.fileType == "image/webp" ? "webp" : "jpg";

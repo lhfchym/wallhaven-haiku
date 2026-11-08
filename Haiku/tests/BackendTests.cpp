@@ -99,6 +99,9 @@ static void CheckOffline(Backend& backend, const TemporaryStorage& storage, cons
     Backend reopened(storage.path);
     Preferences read = reopened.LoadPreferences();
     CHECK(read.language == "zh-Hans");
+    prefs.language="system";
+    CHECK(backend.SavePreferences(prefs,error));
+    CHECK(reopened.LoadPreferences().language=="system");
     CHECK(read.query == prefs.query && read.apiKey == prefs.apiKey && read.strictAspectRatio);
     struct stat info;
     CHECK(stat((storage.path + "/settings/preferences").c_str(), &info) == 0);

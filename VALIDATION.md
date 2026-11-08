@@ -1,41 +1,29 @@
-# Release validation — 1.0.0, package revision 6
+# Wallhaven 1.1.0 validation
 
-Validation completed 2026-11-02 on Haiku R1 beta6 hrev59866+79, x86_64,
-in a separate VM installed from the official beta6 ISO. Development dependencies
-were present for these tests; this was not a second newly provisioned OS for revision 6.
+Date: 2026-11-08. Haiku R1 beta6 hrev59866+79, x86_64, dedicated test VM.
 
-## Exact build inputs and output
+Passed: strict HaikuPorter chroot build, package policy and TEST(); offline backend,
+request-header, workspace-merge and catalog tests; catalog checks against the
+installed package; live search, thumbnail/original download, cache reuse and
+seeded pagination; native desktop application and rollback of test changes;
+English default, legacy Chinese, language-menu restart and system-language UI;
+current/selected/all workspace targeting; upgrade from 1.0.0-6, uninstall and
+reinstall with preserved preferences/history/downloads/background.
 
-- Build source commit: `c93b11b5c6783e0b3fdb97fc797018f1bc9ac963`.
-- Source URL: https://github.com/lhfchym/wallhaven-haiku/archive/c93b11b5c6783e0b3fdb97fc797018f1bc9ac963.tar.gz
-- Source SHA-256: `040c50feccaadd2d83e13737dc1d8c87ad830a09c675e498c66ed5d3549337d0`.
-- HPKG SHA-256: `3573b0b9c96b77e1517ba262e39bde69d90291ebac30e88d551bf50c13435db8`.
-- Recipe SHA-256: `674b300440d05fca98fb9fadd7d5230a2a896e5601add2cabc0da3808487a372`.
-- HaikuPorter revision: `601d31b506386466f6155305fdfe86a1c470fda5`.
-- Build: `haikuporter wallhaven --clean`, then `haikuporter wallhaven -j4`;
-  normal chroot enabled, `make test` executed inside BUILD().
+The target workspace is captured before downloading. Non-target workspace images,
+placement, origin and text outline are preserved. Tests include workspace bit 31,
+repeated updates, missing optional fields and invalid input rejection.
 
-The attached source archive contains the exact build input. The release tag also
-includes this validation record and the pinned recipe, added after the build.
-No application source changes were made between the build commit and release tag.
+The source archive is the exact input to the tested HaikuPorter build. The release
+recipe changes its local test URI to the immutable release-asset URL, retaining
+the checksum and build/install/test commands. The Git tag additionally updates
+release documentation; application code, resources, catalogs and tests match the
+build archive byte-for-byte. The public-source allowlist/private-data scan passed.
+No real-account restricted-content API-key test was performed. No HaikuPorts
+submission is part of this release.
 
-## Results
+SHA-256:
 
-- Public source manifest hashes and private-address/key-pattern scan: PASS.
-- Normal chroot build, dependency resolution and package creation: PASS.
-- JSON parsing, item isolation, URL validation, fit scoring and pagination: PASS.
-- Isolated settings, Unicode paths, permissions and history deduplication: PASS.
-- Actual CURL request configuration: API-only X-API-Key, anonymous requests,
-  CDN isolation and injection rejection: PASS (synthetic key, no account login).
-- Live search (24 results), thumbnail and original download, cache reuse,
-  offline enumeration and seeded second page: PASS on final build source.
-- Revision 5 install, upgrade to the final revision 6 HPKG, uninstall and reinstall:
-  PASS; settings and downloaded file hashes preserved, background attribute unchanged.
-- Packaged application launch and IPC response: PASS.
-- Fresh profile: English Settings label; restored saved profile: Chinese label: PASS.
-- Installed THIRD_PARTY_NOTICES.txt and README.en.md match build source: PASS.
-- Standard app/documentation paths and Deskbar launch target: PASS.
+- `wallhaven-1.1.0-1-x86_64.hpkg`: `3395d367e7ab49d6bafd7c37aee30d8c90167c1b82143318ca00ca25a87a7dd4`
 
-Checksums describe this tested artifact, not a promise of bit-for-bit reproducibility
-on every toolchain. No real-account restricted-content authentication or 32-bit
-platform validation is claimed. The project has not been accepted into HaikuPorts.
+- `wallhaven-1.1.0.tar.gz`: `d56f833625e4b038adfc8b02bdac37b904b1afcbd1b19cbe400b7343e381bfdd`

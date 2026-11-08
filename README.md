@@ -4,7 +4,7 @@
 
 An unofficial native wallpaper browser for wallhaven.cc, built for Haiku x86_64.
 Browse wallpapers, preview and download originals, explore saved images offline,
-and apply a background to all workspaces. English is the default; Chinese is
+and apply a background to the current, a selected, or all workspaces. English is the default; Chinese is
 available in Settings.
 
 Project: https://github.com/lhfchym/wallhaven-haiku
@@ -13,14 +13,14 @@ Bug reports: https://github.com/lhfchym/wallhaven-haiku/issues
 
 ## Status and installation
 
-Download the x86_64 HPKG and checksums from the [1.0.0 release](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0).
-The package revision is 6. This project has not been accepted into HaikuPorts.
+Download the x86_64 HPKG and checksums from the [1.1.0 release](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.1.0).
+The package revision is 1. This project has not been accepted into HaikuPorts.
 
 The existing implementation was tested on Haiku R1 beta6 hrev59866+79, x86_64.
 Install the downloaded package with:
 
 ```sh
-pkgman install ./wallhaven-1.0.0-6-x86_64.hpkg
+pkgman install ./wallhaven-1.1.0-1-x86_64.hpkg
 ```
 
 Then launch Wallhaven from Deskbar → Applications.
@@ -44,14 +44,14 @@ outages. `make install` is a developer installation; avoid keeping it alongside
 an installed HPKG with the same application signature.
 
 To create a distribution package on Haiku, run `./package.sh`. Its metadata
-points to the project repository above. The [HaikuPorter recipe](haikuporter/wallhaven-1.0.0.recipe) pins an immutable public
-source commit and its archive checksum. It is also attached to the release.
+points to the project repository above. The [HaikuPorter recipe](haikuporter/wallhaven-1.1.0.recipe) pins an immutable public
+build source archive and its checksum. It is also attached to the release.
 
 ## Use
 
 Search by keyword or adjust category, content and sorting filters. Select a
 wallpaper to preview it. Download original saves it locally; Set wallpaper uses
-the image as the background on all workspaces. Downloaded lists saved images.
+the image as the background on the workspace selected under **Apply to**. Downloaded lists saved images.
 Change the language in Settings and restart to apply it. Existing language
 preferences are preserved during upgrades.
 
@@ -70,8 +70,8 @@ when Wallhaven is closed. Removing the application does not remove that image.
 
 ## Limitations
 
-Only x86_64 is tested. Background changes apply to all workspaces; there is no
-per-monitor or per-workspace selection. Image support depends on installed Haiku
+Only x86_64 is tested. Other workspaces retain their backgrounds; there is no
+per-monitor selection. Image support depends on installed Haiku
 translators. Network failures and rate limits can interrupt browsing or downloads.
 Real-account restricted-content authentication has not been tested with an owner
 API key. The build uses Haiku's private JSON support interface, which may require
@@ -98,3 +98,8 @@ for provenance, licensing and the exact build used.
 ![Original image preview](screenshots/preview.png)
 
 ![Demo artwork applied as the desktop background](screenshots/desktop.png)
+
+## Translation
+
+See [the catkeys guide](Haiku/locales/README.md). Catalogs are embedded in the
+application; language changes in Settings take effect after restarting.

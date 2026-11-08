@@ -1,0 +1,100 @@
+1	English	application/x-vnd.lhfchym-Wallhaven	376799063
+Existing desktop background settings are unexpectedly large	Desktop		Existing desktop background settings are unexpectedly large
+Cannot move the downloaded image to its destination.	Backend		Cannot move the downloaded image to its destination.
+Invalid API authentication request.	Backend		Invalid API authentication request.
+SFW + Sketchy	Wallhaven		SFW + Sketchy
+Invalid wallpaper image URL.	Backend		Invalid wallpaper image URL.
+Favorites	Wallhaven		Favorites
+Next page	Wallhaven		Next page
+Native wallpaper picker	Wallhaven		Native wallpaper picker
+Category	Wallhaven		Category
+Cannot create image file. Check the download directory.	Backend		Cannot create image file. Check the download directory.
+Cannot preserve desktop settings	Desktop		Cannot preserve desktop settings
+Cannot locate the desktop	Desktop		Cannot locate the desktop
+Wallpaper preview	Wallhaven		Wallpaper preview
+%count% · Page %page% of %pages%	Wallhaven		%count% · Page %page% of %pages%
+Wallhaven rate limit reached. Please wait one minute and try again.	Backend		Wallhaven rate limit reached. Please wait one minute and try again.
+Open source page	Wallhaven		Open source page
+Cannot replace desktop settings	Desktop		Cannot replace desktop settings
+Restart Wallhaven to apply language changes.	Wallhaven		Restart Wallhaven to apply language changes.
+Settings…	Wallhaven		Settings…
+Download folder:	Wallhaven		Download folder:
+Loading…	Wallhaven		Loading…
+Cannot apply desktop wallpaper	Desktop		Cannot apply desktop wallpaper
+Fetching wallpapers…	Wallhaven		Fetching wallpapers…
+Anime	Wallhaven		Anime
+All workspaces	Wallhaven		All workspaces
+Apply to:	Wallhaven		Apply to:
+Latest	Wallhaven		Latest
+{0, plural, one{# wallpaper} other{# wallpapers}}	Wallhaven		{0, plural, one{# wallpaper} other{# wallpapers}}
+The server did not return a valid image.	Backend		The server did not return a valid image.
+Current workspace	Wallhaven		Current workspace
+An API key is required to include NSFW wallpapers.	Backend		An API key is required to include NSFW wallpapers.
+Invalid wallpaper metadata.	Backend		Invalid wallpaper metadata.
+Downloaded	Wallhaven		Downloaded
+Wallhaven returned an invalid search response.	Backend		Wallhaven returned an invalid search response.
+People	Wallhaven		People
+Workspace %number%	Wallhaven		Workspace %number%
+Wallhaven settings	Wallhaven		Wallhaven settings
+Set wallpaper	Wallhaven		Set wallpaper
+Cannot save settings. Check free space and directory permissions.	Backend		Cannot save settings. Check free space and directory permissions.
+Relevance	Wallhaven		Relevance
+Settings saved; restart to change language.	Wallhaven		Settings saved; restart to change language.
+Preparing original image…	Wallhaven		Preparing original image…
+Save	Wallhaven		Save
+Network error: %detail%	Backend		Network error: %detail%
+{0, plural, one{# thumbnail failed; refresh to retry.} other{# thumbnails failed; refresh to retry.}}	Wallhaven		{0, plural, one{# thumbnail failed; refresh to retry.} other{# thumbnails failed; refresh to retry.}}
+Haiku cannot decode this wallpaper image	Desktop		Haiku cannot decode this wallpaper image
+Choose…	Wallhaven		Choose…
+Cannot open image file.	Backend		Cannot open image file.
+Wallhaven returned invalid pagination metadata.	Backend		Wallhaven returned invalid pagination metadata.
+Wallhaven returned HTTP %status%.	Backend		Wallhaven returned HTTP %status%.
+Original saved to downloads	Wallhaven		Original saved to downloads
+Language:	Wallhaven		Language:
+Preview	Wallhaven		Preview
+Wallpaper updated on all workspaces	Wallhaven		Wallpaper updated on all workspaces
+Refresh	Wallhaven		Refresh
+Content	Wallhaven		Content
+All	Wallhaven		All
+; restoring the previous desktop setting also failed	Desktop		; restoring the previous desktop setting also failed
+Cannot allocate API authentication header.	Backend		Cannot allocate API authentication header.
+%count% · Downloads	Wallhaven		%count% · Downloads
+OK	Wallhaven		OK
+Wallpaper updated on workspace %number%	Wallhaven		Wallpaper updated on workspace %number%
+Search	Wallhaven		Search
+API key:	Wallhaven		API key:
+Invalid wallpaper identifier.	Backend		Invalid wallpaper identifier.
+Invalid search settings.	Backend		Invalid search settings.
+Views	Wallhaven		Views
+Select an image	Wallhaven		Select an image
+Toplist	Wallhaven		Toplist
+Cannot create the wallpaper download directory.	Backend		Cannot create the wallpaper download directory.
+Match screen aspect ratio exactly	Wallhaven		Match screen aspect ratio exactly
+Download original	Wallhaven		Download original
+Cannot finish writing image file.	Backend		Cannot finish writing image file.
+Access denied. Check the API key and requested purity filter.	Backend		Access denied. Check the API key and requested purity filter.
+Optional; restricted content needs a key. Stored locally.	Wallhaven		Optional; restricted content needs a key. Stored locally.
+Cannot encode desktop settings	Desktop		Cannot encode desktop settings
+Sort	Wallhaven		Sort
+Downloaded image is invalid or unsupported.	Backend		Downloaded image is invalid or unsupported.
+All (API key)	Wallhaven		All (API key)
+No images. Search or refresh.	Wallhaven		No images. Search or refresh.
+Loading thumbnails…	Wallhaven		Loading thumbnails…
+Cannot read desktop settings	Desktop		Cannot read desktop settings
+Invalid search settings or display dimensions.	Backend		Invalid search settings or display dimensions.
+SFW	Wallhaven		SFW
+System language	Wallhaven		System language
+Wallhaven — Preview	Wallhaven		Wallhaven — Preview
+Saved	Wallhaven		Saved
+Cannot create settings file.	Backend		Cannot create settings file.
+Cancel	Wallhaven		Cancel
+General	Wallhaven		General
+Cannot prepare desktop settings	Desktop		Cannot prepare desktop settings
+Cannot open desktop settings	Desktop		Cannot open desktop settings
+Tracker is unavailable	Desktop		Tracker is unavailable
+Wallpaper file is unavailable	Desktop		Wallpaper file is unavailable
+Cannot decode existing desktop settings	Desktop		Cannot decode existing desktop settings
+Open downloads	Wallhaven		Open downloads
+Unknown error	Wallhaven		Unknown error
+Cannot initialize network connection.	Backend		Cannot initialize network connection.
+Random	Wallhaven		Random

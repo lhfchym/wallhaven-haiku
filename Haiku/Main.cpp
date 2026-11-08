@@ -1,5 +1,9 @@
 #include "Backend.h"
 #include "DesktopIntegration.h"
+#include "Localization.h"
+
+#undef B_TRANSLATION_CONTEXT
+#define B_TRANSLATION_CONTEXT "Wallhaven"
 
 #include <Application.h>
 #include <Alert.h>
@@ -20,6 +24,7 @@
 #include <ScrollView.h>
 #include <SeparatorView.h>
 #include <StringView.h>
+#include <StringFormat.h>
 #include <TextControl.h>
 #include <TextView.h>
 #include <TranslationUtils.h>
@@ -39,9 +44,8 @@ enum { kSearch='srch', kNext='next', kLocal='locl', kSelect='selc',
     kDownload='down', kSet='wall', kPreview='prev', kSource='sour', kFolder='fold',
     kSettings='sett', kSave='save', kChoose='chdr', kChosen='drch',
     kResults='rslt', kThumb='thmb', kDone='done', kActionDone='actd',
-    kWork='work', kSettingsSaved='stsv', kFilter='filt' };
+    kWork='work', kSettingsSaved='stsv', kFilter='filt', kScope='scop', kLanguage='lang' };
 
-static const char* Tr(bool zh, const char* cn, const char* en) { return zh ? cn : en; }
 static void OpenPath(const std::string& path)
 {
     entry_ref ref;
@@ -89,7 +93,7 @@ private:
 
 class Gallery : public BView {
 public:
-    Gallery(bool zh) : BView("gallery", B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE|B_SCROLL_VIEW_AWARE), fZh(zh) {
+    Gallery() : BView("gallery", B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE|B_SCROLL_VIEW_AWARE) {
         SetViewColor(238,240,243); SetExplicitMinSize(BSize(350,260));
     }
     void SetItems(const std::vector<Wallpaper>& items) {
@@ -131,7 +135,7 @@ public:
     void Draw(BRect update) override {
         if(fItems.empty()) {
             SetHighColor(100,108,118);
-            DrawString(Tr(fZh,"暂无图片，请搜索或刷新。","No images. Search or refresh."),BPoint(20,45));
+            DrawString(B_TRANSLATE("No images. Search or refresh."),BPoint(20,45));
             return;
         }
         for(int i=0;i<(int)fItems.size();i++) {
@@ -147,7 +151,7 @@ public:
             if(label.empty()) label=fItems[i].id;
             DrawString(label.c_str(),BPoint(r.left+8,r.bottom-10));
             if(!fItems[i].localPath.empty()) {
-                const char* saved=Tr(fZh,"已下载","Saved");
+                const char* saved=B_TRANSLATE("Saved");
                 SetHighColor(41,115,73); DrawString(saved,BPoint(r.right-StringWidth(saved)-8,r.bottom-10));
             }
         }
@@ -168,7 +172,6 @@ private:
             s->SetSteps(CellHeight()/3,Bounds().Height()*0.85f);
         }
     }
-    bool fZh;
     int fSelected=-1;
     std::vector<Wallpaper> fItems;
     std::vector<std::unique_ptr<BBitmap>> fImages;
@@ -180,6 +183,7 @@ struct Task {
     Wallpaper wallpaper;
     int page=1, width=1024,height=768,generation=0;
     std::string seed;
+    int32 workspace=-1; // -1 means all; otherwise captured at click time.
     bool local=false;
 };
 struct Result { SearchResult search; std::string error; bool local=false; };
@@ -232,10 +236,11 @@ public:
             std::string path,error;
             bool ok=backend.Download(task->wallpaper,task->prefs,path,error);
             if(ok && task->action==kSet) {
-                ok=SetDesktopWallpaper(path,error);
+                ok=SetDesktopWallpaper(path,task->workspace < 0 ? B_ALL_WORKSPACES : (uint32(1) << task->workspace),error);
                 if(ok) { std::string ignored; backend.RecordSet(task->wallpaper,ignored); }
             }
             BMessage done(kActionDone); done.AddBool("ok",ok); done.AddInt32("action",task->action);
+            done.AddInt32("workspace",task->workspace);
             done.AddString("path",path.c_str()); done.AddString("error",error.c_str());
             done.AddString("id",task->wallpaper.id.c_str()); fTarget.SendMessage(&done);
         }
@@ -247,30 +252,40 @@ private:
 class SettingsWindow : public BWindow {
 public:
     SettingsWindow(Preferences prefs,BMessenger target) : BWindow(BRect(160,150,740,490),
-        Tr(prefs.language!="en","Wallhaven 设置","Wallhaven settings"),B_TITLED_WINDOW,
+        B_TRANSLATE("Wallhaven settings"),B_TITLED_WINDOW,
         B_ASYNCHRONOUS_CONTROLS|B_AUTO_UPDATE_SIZE_LIMITS|B_NOT_ZOOMABLE|B_NOT_RESIZABLE),
         fPrefs(prefs),fTarget(target) {
-        bool zh=prefs.language!="en";
-        fKey=new BTextControl("key","API Key:",prefs.apiKey.c_str(),nullptr);
+        fKey=new BTextControl("key",B_TRANSLATE("API key:"),prefs.apiKey.c_str(),nullptr);
         fKey->TextView()->HideTyping(true);
-        fDir=new BTextControl("directory",Tr(zh,"下载目录：","Download folder:"),Backend().DownloadDirectory(prefs).c_str(),nullptr);
+        fDir=new BTextControl("directory",B_TRANSLATE("Download folder:"),Backend().DownloadDirectory(prefs).c_str(),nullptr);
         fDir->SetExplicitMinSize(BSize(380,B_SIZE_UNSET));
-        fStrict=new BCheckBox("strict",Tr(zh,"严格匹配屏幕宽高比","Match screen aspect ratio exactly"),nullptr);
+        fStrict=new BCheckBox("strict",B_TRANSLATE("Match screen aspect ratio exactly"),nullptr);
         fStrict->SetValue(prefs.strictAspectRatio);
-        fEnglish=new BCheckBox("english","English interface (restart to apply)",nullptr); fEnglish->SetValue(!zh);
+        auto languages=new BPopUpMenu("language");
+        languages->SetRadioMode(true); languages->SetLabelFromMarked(true);
+        const char* codes[]={"en","zh-Hans","system"};
+        const char* labels[]={"English","简体中文",B_TRANSLATE("System language")};
+        for(int i=0;i<3;i++) {
+            auto msg=new BMessage(kLanguage); msg->AddString("value",codes[i]);
+            auto item=new BMenuItem(labels[i],msg); languages->AddItem(item);
+            item->SetMarked(prefs.language==codes[i]);
+        }
+        if(!languages->FindMarked()) languages->ItemAt(0)->SetMarked(true);
+        fLanguage=new BMenuField("language",B_TRANSLATE("Language:"),languages);
         BLayoutBuilder::Group<>(this,B_VERTICAL,12).SetInsets(16)
             .Add(fKey)
-            .Add(new BStringView("help",Tr(zh,"可选；敏感内容需要有效密钥。密钥仅保存在本机。","Optional; restricted content needs a key. Stored locally.")))
-            .AddGroup(B_HORIZONTAL,8).Add(fDir).Add(new BButton("choose",Tr(zh,"选择…","Choose…"),new BMessage(kChoose))).End()
-            .Add(fStrict).Add(fEnglish)
-            .Add(new BStringView("scope",Tr(zh,"设置壁纸将应用到所有工作区。","Wallpaper is applied to all workspaces.")))
+            .Add(new BStringView("help",B_TRANSLATE("Optional; restricted content needs a key. Stored locally.")))
+            .AddGroup(B_HORIZONTAL,8).Add(fDir).Add(new BButton("choose",B_TRANSLATE("Choose…"),new BMessage(kChoose))).End()
+            .Add(fStrict).Add(fLanguage)
+            .Add(new BStringView("scope",B_TRANSLATE("Restart Wallhaven to apply language changes.")))
             .AddGroup(B_HORIZONTAL,8).AddGlue()
-                .Add(new BButton("cancel",Tr(zh,"取消","Cancel"),new BMessage(B_QUIT_REQUESTED)))
-                .Add(new BButton("save",Tr(zh,"保存","Save"),new BMessage(kSave))).End();
+                .Add(new BButton("cancel",B_TRANSLATE("Cancel"),new BMessage(B_QUIT_REQUESTED)))
+                .Add(new BButton("save",B_TRANSLATE("Save"),new BMessage(kSave))).End();
         Show();
     }
     void MessageReceived(BMessage* m) override {
         switch(m->what) {
+        case kLanguage: break; // BMenu marks the selected language.
         case kChoose:
             if(!fPanel) {
                 BMessenger target(this); BMessage chosen(kChosen);
@@ -282,9 +297,9 @@ public:
         }
         case kSave: {
             fPrefs.apiKey=fKey->Text(); fPrefs.downloadDirectory=fDir->Text();
-            fPrefs.strictAspectRatio=fStrict->Value(); fPrefs.language=fEnglish->Value()?"en":"zh-Hans";
+            fPrefs.strictAspectRatio=fStrict->Value(); fPrefs.language=fLanguage->Menu()->FindMarked()->Message()->GetString("value","en");
             std::string error;
-            if(!Backend().SavePreferences(fPrefs,error)) { (new BAlert("error",error.c_str(),"OK"))->Go(); break; }
+            if(!Backend().SavePreferences(fPrefs,error)) { (new BAlert("error",error.c_str(),B_TRANSLATE("OK")))->Go(); break; }
             fTarget.SendMessage(kSettingsSaved); PostMessage(B_QUIT_REQUESTED); break;
         }
         default: BWindow::MessageReceived(m);
@@ -292,7 +307,7 @@ public:
     }
 private:
     Preferences fPrefs; BMessenger fTarget;
-    BTextControl *fKey,*fDir; BCheckBox *fStrict,*fEnglish;
+    BTextControl *fKey,*fDir; BCheckBox* fStrict; BMenuField* fLanguage;
     std::unique_ptr<BFilePanel> fPanel;
 };
 
@@ -300,15 +315,14 @@ class MainWindow : public BWindow {
 public:
     MainWindow() : BWindow(BRect(24,70,984,710),"Wallhaven · Haiku",B_TITLED_WINDOW,
         B_ASYNCHRONOUS_CONTROLS|B_AUTO_UPDATE_SIZE_LIMITS), fPrefs(Backend().LoadPreferences()) {
-        fZh=fPrefs.language!="en";
         fQuery=new BTextControl("query",nullptr,fPrefs.query.c_str(),new BMessage(kSearch));
-        fSearch=Button("search","搜索","Search",kSearch);
-        fRefresh=Button("refresh","刷新","Refresh",kSearch);
-        fNext=Button("next","下一页","Next page",kNext);
-        fDownloads=Button("downloads","已下载","Downloaded",kLocal);
-        fCategories=Menu("categories",{"风景 / 综合","动漫","人物","全部"},{"General","Anime","People","All"},{"100","010","001","111"},fPrefs.categories);
-        fPurity=Menu("purity",{"安全内容","安全 + 较敏感","全部（需密钥）"},{"SFW","SFW + Sketchy","All (API key)"},{"100","110","111"},fPrefs.purity);
-        fSorting=Menu("sorting",{"随机","热门榜","最新","收藏最多","浏览最多","相关度"},{"Random","Toplist","Latest","Favorites","Views","Relevance"},{"random","toplist","date_added","favorites","views","relevance"},fPrefs.sorting);
+        fSearch=Button("search",B_TRANSLATE("Search"),kSearch);
+        fRefresh=Button("refresh",B_TRANSLATE("Refresh"),kSearch);
+        fNext=Button("next",B_TRANSLATE("Next page"),kNext);
+        fDownloads=Button("downloads",B_TRANSLATE("Downloaded"),kLocal);
+        fCategories=Menu("categories",{B_TRANSLATE("General"),B_TRANSLATE("Anime"),B_TRANSLATE("People"),B_TRANSLATE("All")},{"100","010","001","111"},fPrefs.categories);
+        fPurity=Menu("purity",{B_TRANSLATE("SFW"),B_TRANSLATE("SFW + Sketchy"),B_TRANSLATE("All (API key)")},{"100","110","111"},fPrefs.purity);
+        fSorting=Menu("sorting",{B_TRANSLATE("Random"),B_TRANSLATE("Toplist"),B_TRANSLATE("Latest"),B_TRANSLATE("Favorites"),B_TRANSLATE("Views"),B_TRANSLATE("Relevance")},{"random","toplist","date_added","favorites","views","relevance"},fPrefs.sorting);
         auto sidebar=new BView("sidebar",0); sidebar->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
         sidebar->SetExplicitMinSize(BSize(165,0)); sidebar->SetExplicitMaxSize(BSize(180,B_SIZE_UNLIMITED));
         BScreen screen(this); BRect frame=screen.Frame();
@@ -316,17 +330,17 @@ public:
         std::string display=std::to_string(fWidth)+" × "+std::to_string(fHeight);
         auto title=new BStringView("brand","Wallhaven"); BFont font(be_bold_font); font.SetSize(22); title->SetFont(&font);
         BLayoutBuilder::Group<>(sidebar,B_VERTICAL,10).SetInsets(12)
-            .Add(title).Add(new BStringView("native",Tr(fZh,"Haiku 原生壁纸工具","Native wallpaper picker")))
+            .Add(title).Add(new BStringView("native",B_TRANSLATE("Native wallpaper picker")))
             .Add(new BSeparatorView(B_HORIZONTAL))
-            .Add(new BStringView("category-label",Tr(fZh,"分类","Category"))).Add(fCategories)
-            .Add(new BStringView("purity-label",Tr(fZh,"内容","Content"))).Add(fPurity)
-            .Add(new BStringView("sort-label",Tr(fZh,"排序","Sort"))).Add(fSorting)
+            .Add(new BStringView("category-label",B_TRANSLATE("Category"))).Add(fCategories)
+            .Add(new BStringView("purity-label",B_TRANSLATE("Content"))).Add(fPurity)
+            .Add(new BStringView("sort-label",B_TRANSLATE("Sort"))).Add(fSorting)
             .Add(fRefresh).Add(fDownloads).AddGlue()
             .Add(new BStringView("display",display.c_str()))
-            .Add(Button("settings","设置…","Settings…",kSettings));
-        fGallery=new Gallery(fZh);
+            .Add(Button("settings",B_TRANSLATE("Settings…"),kSettings));
+        fGallery=new Gallery();
         auto scroll=new BScrollView("gallery-scroll",fGallery,0,false,true,B_PLAIN_BORDER);
-        fStatus=new BStringView("status",Tr(fZh,"正在加载…","Loading…")); fStatus->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED,25));
+        fStatus=new BStringView("status",B_TRANSLATE("Loading…")); fStatus->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED,25));
         fStatus->SetTruncation(B_TRUNCATE_END);
         auto center=new BView("center",0); center->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
         BLayoutBuilder::Group<>(center,B_VERTICAL,8).SetInsets(8)
@@ -336,17 +350,20 @@ public:
         auto inspector=new BView("inspector",0); inspector->SetViewUIColor(B_PANEL_BACKGROUND_COLOR);
         inspector->SetExplicitMinSize(BSize(190,0)); inspector->SetExplicitMaxSize(BSize(220,B_SIZE_UNLIMITED));
         fPreview=new ImageView("preview"); fPreview->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED,180));
-        fInfo=new BStringView("info",Tr(fZh,"选择一张图片","Select an image"));
+        fInfo=new BStringView("info",B_TRANSLATE("Select an image"));
         fMeta=new BStringView("metadata","");
-        fSet=Button("set","设为桌面壁纸","Set wallpaper",kSet);
-        fDownload=Button("download","下载原图","Download original",kDownload);
-        fFull=Button("preview-button","查看大图","Preview",kPreview);
-        fSource=Button("source","打开来源页","Open source page",kSource);
+        fWorkspaces=new BMenuField("workspaces",nullptr,new BPopUpMenu("workspaces"));
+        fWorkspaces->Menu()->SetRadioMode(true); fWorkspaces->Menu()->SetLabelFromMarked(true);
+        RebuildWorkspaces();
+        fSet=Button("set",B_TRANSLATE("Set wallpaper"),kSet);
+        fDownload=Button("download",B_TRANSLATE("Download original"),kDownload);
+        fFull=Button("preview-button",B_TRANSLATE("Preview"),kPreview);
+        fSource=Button("source",B_TRANSLATE("Open source page"),kSource);
         BLayoutBuilder::Group<>(inspector,B_VERTICAL,10).SetInsets(12)
-            .Add(new BStringView("preview-title",Tr(fZh,"壁纸预览","Wallpaper preview")))
-            .Add(fPreview).Add(fInfo).Add(fMeta).Add(fFull).Add(fDownload).Add(fSet)
-            .Add(new BStringView("all-workspaces",Tr(fZh,"应用到所有工作区","Applies to all workspaces")))
-            .Add(fSource).AddGlue().Add(Button("folder","打开下载目录","Open downloads",kFolder));
+            .Add(new BStringView("preview-title",B_TRANSLATE("Wallpaper preview")))
+            .Add(fPreview).Add(fInfo).Add(fMeta).Add(fFull).Add(fDownload)
+            .Add(new BStringView("workspace-label",B_TRANSLATE("Apply to:"))).Add(fWorkspaces).Add(fSet)
+            .Add(fSource).AddGlue().Add(Button("folder",B_TRANSLATE("Open downloads"),kFolder));
         BLayoutBuilder::Group<>(this,B_HORIZONTAL,0).Add(sidebar)
             .Add(new BSeparatorView(B_VERTICAL)).Add(center)
             .Add(new BSeparatorView(B_VERTICAL)).Add(inspector);
@@ -354,9 +371,19 @@ public:
         fWorker=new Worker(BMessenger(this));
         UpdateActions(); Show(); PostMessage(kSearch);
     }
+    void WorkspacesChanged(uint32, uint32) override { RebuildWorkspaces(); }
+    void WorkspaceActivated(int32, bool active) override { if(active) RebuildWorkspaces(); }
+    void MenusBeginning() override { RebuildWorkspaces(); }
     bool QuitRequested() override { be_app->PostMessage(B_QUIT_REQUESTED); return true; }
     void MessageReceived(BMessage* m) override {
         switch(m->what) {
+        case kScope: {
+            int32 scope=m->GetInt32("workspace",-2);
+            if(!fAction && scope>=-2 && scope<(int32)count_workspaces()) {
+                fWorkspace=scope; RebuildWorkspaces();
+            }
+            break;
+        }
         case kSearch: if(!fBusy&&!fAction) StartSearch(false,1); break;
         case kFilter: if(!fBusy&&!fAction) StartSearch(false,1); break;
         case kLocal: if(!fBusy&&!fAction) StartSearch(true,1); break;
@@ -366,10 +393,10 @@ public:
             if(!result || m->GetInt32("generation",-1)!=fGeneration) break;
             fItems=result->search.wallpapers; fPage=result->search.page; fLastPage=result->search.lastPage; fSeed=result->search.seed;
             fSelected=-1; fPaths.assign(fItems.size(),""); fPreview->Clear();
-            fGallery->SetItems(fItems); fInfo->SetText(Tr(fZh,"选择一张图片","Select an image")); fMeta->SetText("");
+            fGallery->SetItems(fItems); fInfo->SetText(B_TRANSLATE("Select an image")); fMeta->SetText("");
             fError=result->error;
             if(!fError.empty()) Status(fError);
-            else Status(Tr(fZh,"正在加载缩略图…","Loading thumbnails…"));
+            else Status(B_TRANSLATE("Loading thumbnails…"));
             UpdateActions(); break;
         }
         case kThumb: {
@@ -383,10 +410,22 @@ public:
         case kDone:
             if(m->GetInt32("generation",-1)==fGeneration) {
                 fBusy=false;
-                if(fError.empty()) Status(std::to_string(fItems.size())+Tr(fZh," 张壁纸"," wallpapers")+
-                    (fLocal?Tr(fZh," · 本地下载"," · Downloads"):" · "+std::to_string(fPage)+" / "+std::to_string(fLastPage)));
-                if(m->GetInt32("failed",0)>0 && fError.empty())
-                    Status(std::to_string(m->GetInt32("failed",0))+Tr(fZh," 张缩略图加载失败，可刷新重试。"," thumbnails failed; refresh to retry."));
+                if(fError.empty()) {
+                    BString count;
+                    BStringFormat format(B_TRANSLATE("{0, plural, one{# wallpaper} other{# wallpapers}}"));
+                    format.Format(count,static_cast<int64>(fItems.size()));
+                    BString status(B_TRANSLATE("%count% · Page %page% of %pages%"));
+                    if(fLocal) status=B_TRANSLATE("%count% · Downloads");
+                    status.ReplaceAll("%count%",count.String());
+                    status.ReplaceAll("%page%",std::to_string(fPage).c_str());
+                    status.ReplaceAll("%pages%",std::to_string(fLastPage).c_str());
+                    Status(status.String());
+                    int32 failed=m->GetInt32("failed",0);
+                    if(failed>0) {
+                        BStringFormat failures(B_TRANSLATE("{0, plural, one{# thumbnail failed; refresh to retry.} other{# thumbnails failed; refresh to retry.}}"));
+                        failures.Format(status,failed); Status(status.String());
+                    }
+                }
                 UpdateActions();
             } break;
         case kSelect: {
@@ -398,25 +437,35 @@ public:
         }
         case kDownload: case kSet: case kPreview:
             if(fSelected>=0&&!fAction) {
-                fAction=true; UpdateActions(); Status(Tr(fZh,"正在准备原图，请稍候…","Preparing original image…"));
-                auto task=new Task; task->action=m->what; task->prefs=fPrefs; task->wallpaper=fItems[fSelected]; Queue(task);
+                fAction=true; UpdateActions(); Status(B_TRANSLATE("Preparing original image…"));
+                auto task=new Task; task->action=m->what; task->prefs=fPrefs; task->wallpaper=fItems[fSelected];
+                RebuildWorkspaces();
+                task->workspace=fWorkspace==-2 ? current_workspace() : fWorkspace;
+                Queue(task);
             } break;
         case kActionDone: {
             fAction=false; UpdateActions();
             if(!m->GetBool("ok",false)) {
-                std::string error=m->GetString("error","Unknown error"); Status(error);
-                (new BAlert("Wallhaven",error.c_str(),Tr(fZh,"确定","OK"),nullptr,nullptr,B_WIDTH_AS_USUAL,B_WARNING_ALERT))->Go(nullptr); break;
+                std::string error=m->GetString("error",B_TRANSLATE("Unknown error")); Status(error);
+                (new BAlert("Wallhaven",error.c_str(),B_TRANSLATE("OK"),nullptr,nullptr,B_WIDTH_AS_USUAL,B_WARNING_ALERT))->Go(nullptr); break;
             }
             std::string path=m->GetString("path","");
             for(auto& item:fItems) if(item.id==m->GetString("id","")) item.localPath=path;
             fGallery->MarkDownloaded(m->GetString("id",""),path);
             uint32 action=m->GetInt32("action",0);
             if(action==kPreview) {
-                auto window=new BWindow(BRect(90,90,910,660),Tr(fZh,"Wallhaven — 原图预览","Wallhaven — Preview"),B_TITLED_WINDOW,B_ASYNCHRONOUS_CONTROLS|B_AUTO_UPDATE_SIZE_LIMITS);
+                auto window=new BWindow(BRect(90,90,910,660),B_TRANSLATE("Wallhaven — Preview"),B_TITLED_WINDOW,B_ASYNCHRONOUS_CONTROLS|B_AUTO_UPDATE_SIZE_LIMITS);
                 auto view=new ImageView("original"); view->Load(path,true); BLayoutBuilder::Group<>(window,B_VERTICAL,0).Add(view); window->Show();
             }
-            Status(action==kSet?Tr(fZh,"桌面壁纸已更新（所有工作区）","Wallpaper updated on all workspaces"):
-                Tr(fZh,"原图已保存到下载目录","Original saved to downloads")); break;
+            if(action==kSet) {
+                int32 workspace=m->GetInt32("workspace",-1);
+                if(workspace<0) Status(B_TRANSLATE("Wallpaper updated on all workspaces"));
+                else {
+                    BString status(B_TRANSLATE("Wallpaper updated on workspace %number%"));
+                    status.ReplaceAll("%number%",std::to_string(workspace+1).c_str()); Status(status.String());
+                }
+            } else Status(B_TRANSLATE("Original saved to downloads"));
+            break;
         }
         case kSource:
             if(fSelected>=0&&!fItems[fSelected].url.empty()) {
@@ -428,20 +477,37 @@ public:
             else { BMessage activate(B_SET_PROPERTY); activate.AddSpecifier("Active"); activate.AddBool("data",true); fSettings.SendMessage(&activate); }
             break;
         case kSettingsSaved:
-            fPrefs=Backend().LoadPreferences(); Status(Tr(fZh,"设置已保存；更改语言后请重新打开应用。","Settings saved; restart to change language.")); break;
+            fPrefs=Backend().LoadPreferences(); Status(B_TRANSLATE("Settings saved; restart to change language.")); break;
         default: BWindow::MessageReceived(m);
         }
     }
 private:
-    BButton* Button(const char* name,const char* cn,const char* en,uint32 what) {
-        return new BButton(name,Tr(fZh,cn,en),new BMessage(what));
+    void RebuildWorkspaces() {
+        if(fWorkspace>=(int32)count_workspaces()) fWorkspace=-2;
+        BMenu* menu=fWorkspaces->Menu();
+        while(BMenuItem* item=menu->RemoveItem(int32(0))) delete item;
+        for(int32 workspace=-2;workspace<(int32)count_workspaces();workspace++) {
+            BString label;
+            if(workspace==-2) label=B_TRANSLATE("Current workspace");
+            else if(workspace==-1) label=B_TRANSLATE("All workspaces");
+            else {
+                label=B_TRANSLATE("Workspace %number%");
+                label.ReplaceAll("%number%",std::to_string(workspace+1).c_str());
+            }
+            auto msg=new BMessage(kScope); msg->AddInt32("workspace",workspace);
+            auto item=new BMenuItem(label.String(),msg); menu->AddItem(item);
+            item->SetTarget(this); item->SetMarked(fWorkspace==workspace);
+        }
     }
-    BMenuField* Menu(const char* name,std::vector<const char*> cn,std::vector<const char*> en,
+    BButton* Button(const char* name,const char* label,uint32 what) {
+        return new BButton(name,label,new BMessage(what));
+    }
+    BMenuField* Menu(const char* name,std::vector<const char*> labels,
         std::vector<const char*> values,const std::string& selected) {
         auto menu=new BPopUpMenu(name); menu->SetRadioMode(true); menu->SetLabelFromMarked(true);
         for(size_t i=0;i<values.size();i++) {
             auto msg=new BMessage(kFilter); msg->AddString("value",values[i]);
-            auto item=new BMenuItem(Tr(fZh,cn[i],en[i]),msg); menu->AddItem(item); item->SetMarked(selected==values[i]);
+            auto item=new BMenuItem(labels[i],msg); menu->AddItem(item); item->SetMarked(selected==values[i]);
         }
         if(!menu->FindMarked()) menu->ItemAt(0)->SetMarked(true);
         return new BMenuField(name,nullptr,menu);
@@ -456,7 +522,7 @@ private:
         fPrefs.query=fQuery->Text(); fPrefs.categories=Value(fCategories); fPrefs.purity=Value(fPurity); fPrefs.sorting=Value(fSorting);
         std::string error; Backend().SavePreferences(fPrefs,error);
         fBusy=true; fLocal=local; fError.clear(); ++fGeneration; UpdateActions();
-        Status(Tr(fZh,"正在获取壁纸…","Fetching wallpapers…"));
+        Status(B_TRANSLATE("Fetching wallpapers…"));
         auto task=new Task; task->action=kSearch; task->prefs=fPrefs; task->page=page; task->local=local;
         task->width=fWidth; task->height=fHeight; task->generation=fGeneration; task->seed=page>1?fSeed:""; Queue(task);
     }
@@ -466,13 +532,15 @@ private:
         fCategories->SetEnabled(idle); fPurity->SetEnabled(idle); fSorting->SetEnabled(idle);
         fNext->SetEnabled(idle&&fPage<fLastPage);
         bool selected=fSelected>=0&&!fAction;
+        fWorkspaces->SetEnabled(!fAction);
         fSet->SetEnabled(selected); fDownload->SetEnabled(selected); fFull->SetEnabled(selected); fSource->SetEnabled(selected);
     }
-    Preferences fPrefs; bool fZh=true,fBusy=false,fAction=false,fLocal=false;
+    Preferences fPrefs; bool fBusy=false,fAction=false,fLocal=false;
+    int32 fWorkspace=-2;
     int fWidth=1024,fHeight=768,fPage=1,fLastPage=1,fGeneration=0,fSelected=-1;
     std::string fSeed,fError;
     Worker* fWorker; BMessenger fSettings;
-    BTextControl* fQuery; BMenuField *fCategories,*fPurity,*fSorting;
+    BTextControl* fQuery; BMenuField *fCategories,*fPurity,*fSorting,*fWorkspaces;
     BButton *fSearch,*fRefresh,*fNext,*fDownloads,*fSet,*fDownload,*fFull,*fSource;
     BStringView *fStatus,*fInfo,*fMeta; Gallery* fGallery; ImageView* fPreview;
     std::vector<Wallpaper> fItems; std::vector<std::string> fPaths;
@@ -481,12 +549,15 @@ private:
 class WallhavenApp : public BApplication {
 public:
     WallhavenApp() : BApplication(kSignature) {}
-    void ReadyToRun() override { fWindow=new MainWindow; }
+    void ReadyToRun() override {
+        InitializeLocalization(Backend().LoadPreferences().language);
+        fWindow=new MainWindow;
+    }
     void MessageReceived(BMessage* msg) override {
         // Native BMessage commands also make the UI accessible to Haiku's hey tool.
         switch(msg->what) {
         case kSearch: case kLocal: case kNext: case kDownload: case kSet: case kPreview:
-        case kSelect: case kSettings: case kFolder:
+        case kSelect: case kSettings: case kFolder: case kScope:
             if(fWindow) { fWindow->PostMessage(msg); BMessage reply(B_REPLY); reply.AddInt32("error",B_OK); msg->SendReply(&reply); } break;
         default: BApplication::MessageReceived(msg);
         }

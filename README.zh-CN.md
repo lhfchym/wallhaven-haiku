@@ -2,20 +2,21 @@
 
 [English](README.md) | **简体中文**
 
-面向 Haiku x86_64 的非官方 wallhaven.cc 原生壁纸浏览工具。支持浏览壁纸、预览和下载原图、离线查看已下载图片，以及将壁纸应用到所有工作区。首次启动默认英文，可在设置中切换为中文。
+面向 Haiku x86_64 的非官方 wallhaven.cc 原生壁纸浏览工具。支持浏览壁纸、预览和下载原图、离线查看已下载图片，以及将壁纸应用到当前、指定或所有工作区。首次启动默认英文，可在设置中切换为中文。
 
 项目地址：https://github.com/lhfchym/wallhaven-haiku
 
 问题反馈：https://github.com/lhfchym/wallhaven-haiku/issues
 
+
 ## 版本与安装
 
-从 [1.0.0 发布页](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0) 下载 x86_64 安装包及校验和。当前包修订号为 6，项目尚未被 HaikuPorts 收录。
+从 [1.1.0 发布页](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.1.0) 下载 x86_64 安装包及校验和。当前包修订号为 1，项目尚未被 HaikuPorts 收录。
 
 已在 Haiku R1 beta6 hrev59866+79、x86_64 上验证。下载后执行：
 
 ```sh
-pkgman install ./wallhaven-1.0.0-6-x86_64.hpkg
+pkgman install ./wallhaven-1.1.0-1-x86_64.hpkg
 ```
 
 安装完成后，从 Deskbar → Applications 启动 Wallhaven。升级前请退出应用。
@@ -36,7 +37,7 @@ make test
 `make install` 用于开发安装；请避免与具有相同应用签名的 HPKG 安装版同时存在。
 
 在 `Haiku` 目录运行 `./package.sh` 可生成安装包，包元数据指向本项目公开仓库。
-[HaikuPorter recipe](haikuporter/wallhaven-1.0.0.recipe) 固定了公开源码提交及归档校验和，也作为发布附件提供。
+[HaikuPorter recipe](haikuporter/wallhaven-1.1.0.recipe) 固定了实际构建源码归档及其校验和，也作为发布附件提供。
 
 ## 使用方法
 
@@ -44,7 +45,7 @@ make test
 
 - **Preview / 查看大图**：预览原图。
 - **Download original / 下载原图**：将图片保存到本地。
-- **Set wallpaper / 设为桌面壁纸**：将图片应用到所有工作区。
+- **Set wallpaper / 设为桌面壁纸**：将图片应用到“应用到”中所选的工作区。
 - **Downloaded / 已下载**：离线浏览已保存的图片。
 
 在 **Settings / 设置** 中切换界面语言，重启应用后生效。升级会保留已有的语言选择。
@@ -61,7 +62,7 @@ make test
 
 ## 已知限制
 
-目前仅验证了 x86_64。壁纸变更会应用到所有工作区，暂不支持按显示器或工作区分别设置。
+目前仅验证了 x86_64。其他工作区的背景会保留；暂不支持按显示器分别设置。
 图片格式支持取决于已安装的 Haiku 图像转换器（translators）。网络故障和服务限流可能中断浏览或下载。
 尚未使用真实账户的 API Key 验证受限内容访问。构建使用 Haiku 的私有 JSON 接口，系统更新后可能需要适配。
 
@@ -81,3 +82,7 @@ make test
 ![原图预览](screenshots/preview.png)
 
 ![将演示素材设为桌面壁纸](screenshots/desktop.png)
+
+## 翻译
+
+参见 [catkeys 指南](Haiku/locales/README.md)。目录资源内嵌于程序，设置中的语言选项在重启后生效。

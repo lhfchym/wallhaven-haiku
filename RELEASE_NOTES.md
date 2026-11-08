@@ -1,33 +1,38 @@
-# Wallhaven for Haiku 1.0.0
+# Wallhaven for Haiku 1.1.0
 
 **English** | [简体中文](RELEASE_NOTES.zh-CN.md)
 
-First public release, package revision 6, for Haiku R1 beta6 x86_64.
+Package revision 1 for Haiku R1 beta6 x86_64.
 
-Browse wallhaven.cc with a native Haiku interface: search and filter images,
-preview and save originals, browse downloaded images offline, and apply a
-wallpaper across all workspaces. English is the default; Chinese remains
-available in Settings, and existing language preferences are preserved.
+- Haiku catkeys localization, with embedded Simplified Chinese and English fallback.
+  English remains the default; existing Chinese preferences are preserved.
+  Settings offers English, 简体中文 and System language; restart to apply a change.
+- Apply a wallpaper to the current workspace, a selected workspace, or all workspaces.
+  Other backgrounds and placement settings are preserved. The current workspace is
+  captured when you click, even if you switch workspaces during the download.
+- Cleaned recipe: tests run in TEST(), with no duplicate BUILD test, clean step,
+  separate debug package, or redundant objcopy prerequisite.
 
-This release includes API-only X-API-Key request headers, chroot-compatible
-settings directory creation, MIT licensing, attribution for linked Haiku JSON
-components, and original MIT-licensed demonstration artwork.
+Quit Wallhaven before upgrading, then install:
 
-Validation on Haiku R1 beta6 hrev59866+79 x86_64 covered HaikuPorter chroot
-builds and offline regression tests, live search/thumbnail/original download,
-cache reuse and pagination, upgrade from package revision 5, uninstall and
-reinstall with user data and background preservation, English first launch,
-and preservation of an existing Chinese preference.
+```sh
+pkgman install ./wallhaven-1.1.0-1-x86_64.hpkg
+```
 
-Install: `pkgman install ./wallhaven-1.0.0-6-x86_64.hpkg`. Quit the application
-before upgrading. Release assets include the HPKG, pinned source archive,
-recipe, validation summary and SHA256SUMS.
+Assets: HPKG, exact tested build-source archive, pinned recipe, validation report,
+and SHA256SUMS. Verify the checksums before installation. The Git tag adds current
+release documentation and the published-source recipe to the tested application
+sources; the attached source archive preserves the exact build input.
 
-Known limitations: intermittent network/CDN errors; image support depends on
-Haiku translators; background changes apply to all workspaces; x86_64 only.
-Real-account restricted-content authentication has not been tested. API keys
-are stored locally without encryption. This is not a HaikuPorts inclusion
-or an endorsement by Wallhaven or the Haiku Project.
+Validation passed on Haiku R1 beta6 hrev59866+79 x86_64: strict HaikuPorter chroot
+build/package/tests, embedded catalog checks (including the installed HPKG), live
+search/download/cache/pagination, workspace desktop integration, English/Chinese
+UI checks, and 1.0.0-6 → 1.1.0-1 upgrade/uninstall/reinstall with preserved data.
 
-Project: https://github.com/lhfchym/wallhaven-haiku
-Release: https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0
+Limitations: x86_64 only; no per-monitor background selection; image formats depend
+on Haiku translators. Network failures and rate limits can interrupt downloads.
+Real-account restricted-content authentication has not been tested. API keys are
+stored locally without encryption and sent only in API request headers.
+HaikuPorts inclusion is paused; this release does not imply inclusion or endorsement.
+
+[Release](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.1.0)

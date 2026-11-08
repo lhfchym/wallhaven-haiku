@@ -35,10 +35,10 @@ cp LICENSE "$staging_dir/data/licenses/Wallhaven-MIT"
 
 cat > "$staging_dir/.PackageInfo" <<'EOF'
 name wallhaven
-version 1.0.0-6
+version 1.1.0-1
 architecture x86_64
 summary "Browse and apply wallpapers from wallhaven.cc"
-description "Browse, preview and download Wallhaven images with a native Haiku interface. Set the desktop background on all workspaces, browse downloaded images offline, and configure filters in Chinese or English."
+description "Browse, preview and download Wallhaven images with a native Haiku interface. Set the background on the current, a selected, or all workspaces. Browse saved images offline. Uses Haiku catalogs for translation, with English and Simplified Chinese included."
 packager "lhfchym"
 vendor "lhfchym"
 copyrights {
@@ -54,8 +54,8 @@ user-settings-files {
     "settings/Wallhaven" directory
 }
 provides {
-    wallhaven = 1.0.0
-    app:Wallhaven = 1.0.0
+    wallhaven = 1.1.0
+    app:Wallhaven = 1.1.0
 }
 requires {
     haiku >= r1~beta6
@@ -65,7 +65,7 @@ requires {
 }
 EOF
 
-package_path="$dist_dir/wallhaven-1.0.0-6-$architecture.hpkg"
+package_path="$dist_dir/wallhaven-1.1.0-1-$architecture.hpkg"
 package create -C "$staging_dir" "$package_path"
 package list -i "$package_path"
 echo "Created $package_path"

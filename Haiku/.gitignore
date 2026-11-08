@@ -8,3 +8,8 @@
 *.zip
 
 RequestTests
+
+/WorkspaceTests
+/Wallhaven.pre
+/CatalogTests
+/DesktopTests

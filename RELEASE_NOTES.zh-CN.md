@@ -1,22 +1,25 @@
-# Wallhaven for Haiku 1.0.0
+# Wallhaven for Haiku 1.1.0
 
 [English](RELEASE_NOTES.md) | **简体中文**
 
-首次公开发布，包修订号为 6，适用于 Haiku R1 beta6 x86_64。
+适用于 Haiku R1 beta6 x86_64，安装包修订号为 1。
 
-通过 Haiku 原生界面浏览 wallhaven.cc：搜索和筛选壁纸、预览并保存原图、离线浏览已下载图片，以及将壁纸应用到所有工作区。首次启动默认英文，可在设置中切换为中文，已有语言选择会保留。
+- 接入 Haiku catkeys，内嵌简体中文翻译，缺少翻译时回退英文。新安装仍默认英文，保留原有中文偏好。设置可选择 English、简体中文、跟随系统语言，重启后生效。
+- 支持将壁纸应用到当前、指定或全部工作区，保留其他工作区的图片和显示方式。当前工作区在点击时确定，下载期间切换工作区不会改变目标。
+- 整理 recipe：测试统一由 TEST() 执行，去掉 BUILD 中的重复测试、清理步骤、独立调试包及多余的 objcopy 声明。
 
-本版本包含仅用于 API 的 `X-API-Key` 请求头、兼容 chroot 的配置目录创建方式、MIT 许可证、静态链接的 Haiku JSON 组件版权声明，以及采用 MIT 许可证的原创演示素材。
+升级前请退出 Wallhaven，然后安装：
 
-已在 Haiku R1 beta6 hrev59866+79 x86_64 上完成 HaikuPorter chroot 构建和离线回归测试，验证真实搜索、缩略图与原图下载、缓存复用、分页、从包修订 5 升级、卸载重装后保留用户数据和壁纸、首次启动默认英文，以及保留已有中文设置。
+```sh
+pkgman install ./wallhaven-1.1.0-1-x86_64.hpkg
+```
 
-安装命令：`pkgman install ./wallhaven-1.0.0-6-x86_64.hpkg`。升级前请退出应用。
-发布附件包含 HPKG、固定提交的构建源码归档、recipe、验证摘要和 SHA256SUMS。
+附件包括 HPKG、实际用于测试构建的源码归档、固定源码地址的 recipe、验证报告和 SHA256SUMS。安装前可核对校验值。Git 标签在经过测试的应用源码上补充了本次发布文档与正式下载地址；源码附件保留精确的构建输入。
 
-已知限制：网络/CDN 偶发错误；图片格式支持取决于 Haiku 图像转换器；壁纸变更作用于所有工作区；仅验证 x86_64。
-真实账户的受限内容鉴权尚未测试。API Key 在本地以未加密形式保存。
-本次发布不代表已被 HaikuPorts 收录，也不代表获得 Wallhaven 或 Haiku Project 的背书。
+已在 Haiku R1 beta6 hrev59866+79 x86_64 验证：严格 HaikuPorter chroot 构建、打包和测试；内嵌翻译（含已安装 HPKG）；真实搜索、原图下载、缓存和分页；工作区桌面操作；中英文界面；1.0.0-6 → 1.1.0-1 升级、卸载和重装，保留用户数据及背景。
 
-项目地址：https://github.com/lhfchym/wallhaven-haiku
+限制：仅验证 x86_64；不支持按显示器分别设置；图片格式支持取决于 Haiku translators。网络故障和限流可能影响下载。未使用真实账户 API Key 验证受限内容；密钥在本机未加密保存，仅通过 API 请求头发送。
 
-发布页面：https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.0.0
+HaikuPorts 收录继续暂停，本次发布不代表已被收录或获得官方认可。
+
+[版本发布](https://github.com/lhfchym/wallhaven-haiku/releases/tag/v1.1.0)

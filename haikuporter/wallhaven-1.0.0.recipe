@@ -31,9 +31,7 @@ BUILD_PREREQUIRES="
 	"
 BUILD()
 {
-	make clean
 	make $jobArgs
-	make test
 }
 INSTALL()
 {
